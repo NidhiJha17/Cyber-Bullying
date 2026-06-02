@@ -4,7 +4,7 @@ import pandas as pd
 datapath = r"C:\Users\nidhi\Downloads\cyber bullying dataset\aggression_parsed_dataset.csv"
 df = pd.read_csv(datapath)
 
-#keeping only the columns that we need
+#1.) Keeping only the columns that we need
 df = df[["Text", "oh_label"]]
 
 #remove any empty rows
@@ -60,3 +60,50 @@ for ax, (label_id, label_name, cmap) in zip(axes, [
 plt.tight_layout()
 plt.savefig("plot3_wordclouds.png")
 plt.show()
+
+
+#NLP Preproessing for text cleaning
+#sTEP:1)- Basic Text cleaning
+import re
+import string
+
+def clean_text (text):
+    text= text.lower()
+    text= re.sub(r"https\s+"," ", text)
+    text= re.sub(r"[^\w\s]", " ", text)
+    text= text.strip()
+    return text
+
+df['clean_text']= df['Text'].apply(clean_text)
+
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+
+nltk.download('Stopwords')
+nltk.download('Wordnet')
+
+#Step:2) TOKENIZATION
+
+df['tokens']= df['Text'].apply(lambda x: x.split())
+
+#Step-3) REMOVING STOPWORDS
+stop_words= set(stopwords.words('English'))
+
+df['tokens']=df['tokens'].apply(lambda words: [word for word in words if word not in stop_words])
+
+#Step:4) - Lemmatization (converting  words to its root form)
+lemmatizer= WordNetLemmatizer()
+df['tokens']= df['tokens'].apply(lambda words: [lemmatizer.lemmatize(word) for word in words])
+
+#Step:5)- Joining words back to the sentence
+
+df['clean_text']= df['tokens']. apply(lambda x: " ". join(x))
+
+#Step:5)- Converting text to numerical features
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer= TfidfVectorizer(max_features=5000)
+x= vectorizer.fit_transform(df['clean_text'])
+y= df['oh_label']

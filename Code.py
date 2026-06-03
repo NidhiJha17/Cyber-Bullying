@@ -105,5 +105,61 @@ df['clean_text']= df['tokens']. apply(lambda x: " ". join(x))
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 vectorizer= TfidfVectorizer(max_features=5000)
-x= vectorizer.fit_transform(df['clean_text'])
+X= vectorizer.fit_transform(df['clean_text'])
 y= df['oh_label']
+
+
+#Splitting into Train and Test Set.
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+ 
+print(f"\nTraining samples : {X_train.shape[0]}")
+print(f"Testing  samples : {X_test.shape[0]}")
+
+
+#Training the models
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+
+models = {
+    "Logistic Regression": LogisticRegression(max_iter=1000, class_weight="balanced"),
+    "Naive Bayes"        : MultinomialNB(),
+    "Random Forest"      : RandomForestClassifier(n_estimators=100, class_weight="balanced"),
+}
+ 
+results = {}
+ 
+ 
+for name, model in models.items():
+ 
+    # Train
+    model.fit(X_train, y_train)
+ 
+    # Predict
+    y_pred = model.predict(X_test)
+ 
+    # Results
+    print(classification_report(y_test, y_pred,
+          target_names=["Non-Aggressive", "Aggressive"]))
+ 
+    # Save accuracy for comparison
+    from sklearn.metrics import accuracy_score
+    results[name] = accuracy_score(y_test, y_pred)
+ 
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    disp = ConfusionMatrixDisplay(cm, display_labels=["Non-Aggressive", "Aggressive"])
+    fig, ax = plt.subplots(figsize=(5, 4))
+    disp.plot(ax=ax, colorbar=False, cmap="Blues")
+    ax.set_title(f"Confusion Matrix — {name}")
+    plt.tight_layout()
+    plt.savefig(f"plot4_cm_{name.replace(' ', '_').lower()}.png")
+    plt.show()
+ 
+    

@@ -161,5 +161,33 @@ for name, model in models.items():
     plt.tight_layout()
     plt.savefig(f"plot4_cm_{name.replace(' ', '_').lower()}.png")
     plt.show()
+
+
+#Comparing all the models
+
+plt.figure(figsize=(8, 4))
+plt.bar(results.keys(), results.values(), color=["steelblue", "tomato", "seagreen"])
+plt.title("Model Accuracy Comparison")
+plt.ylabel("Accuracy")
+plt.ylim(0.7, 1.0)
+plt.xticks(rotation=10)
+plt.tight_layout()
+plt.savefig("plot5_model_comparison.png")
+plt.show()
+
+#Saving the best model
+import pickle
+
+best_model_name = max(results, key=results.get)
+best_model      = models[best_model_name]
  
-    
+print(f"\nBest model: {best_model_name} (Accuracy: {results[best_model_name]:.4f})")
+ 
+with open("best_model.pkl", "wb") as f:
+    pickle.dump(best_model, f)
+ 
+with open("tfidf_vectorizer.pkl", "wb") as f:
+    pickle.dump(vectorizer, f)
+ 
+print("Model and vectorizer saved!")
+ 
